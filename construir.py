@@ -1,8 +1,11 @@
-"""Arma la maqueta del rediseño (index.html) con los mismos textos, secciones y ganchos de main.js que la web actual.
-Uso: python construir.py  →  index.html
-Las fotos están en assets/img/<nombre>-800.webp y -1600.webp (ver ../exportar_fotos.py).
+"""Arma la web rediseñada en español (index.html) e inglés (en.html), con los mismos textos, secciones y ganchos
+de main.js que la web actual. Todos los textos están en textos.py.
+Uso: python construir.py  →  index.html y en.html
+Las fotos están en assets/img/<nombre>-800.webp y -1600.webp (ver ../03 Diseño/exportar_fotos.py).
 """
 from pathlib import Path
+
+from textos import EN, ES
 
 AQUI = Path(__file__).resolve().parent
 # DEMO: la copia de prueba (GitHub Pages) no se indexa en Google, para no competir con itinere-rooms.com.
@@ -11,7 +14,7 @@ DEMO = True
 VERSION = int((AQUI / "assets" / "css" / "styles.css").stat().st_mtime)  # evita que el navegador use el CSS viejo
 WA = "https://wa.me/34683222264"
 MAPS = "https://www.google.com/maps/search/?api=1&amp;query=Itinere+Rooms+Natalio+Rivas+1+Granada"
-BOOKING = "https://www.booking.com/hotel/es/itinere-rooms.es.html"
+IDS = ["habitaciones", "vistas", "servicios", "ubicacion", "opiniones", "galeria"]
 
 ICON = {
     "flecha": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
@@ -39,15 +42,15 @@ def img(nombre, alt, sizes="(max-width: 720px) 100vw, 50vw", carga="lazy", extra
             f'sizes="{sizes}" alt="{alt}" loading="{carga}" decoding="async"{extra}>')
 
 
-def ampliar(nombre, alt, clase=""):
-    c = f' class="{clase}"' if clase else ""
-    return (f'<button type="button"{c} data-lightbox data-full="assets/img/{nombre}-1600.webp" data-alt="{alt}" '
-            f'aria-label="Ampliar: {alt}">{img(nombre, alt)}</button>')
+def html(t):
+    def ampliar(nombre, alt, clase=""):
+        c = f' class="{clase}"' if clase else ""
+        return (f'<button type="button"{c} data-lightbox data-full="assets/img/{nombre}-1600.webp" data-alt="{alt}" '
+                f'aria-label="{t["ampliar"]}: {alt}">{img(nombre, alt)}</button>')
 
-
-def habitacion(fotos, pills, titulo, texto, servicios, cta):
-    media = "".join(ampliar(n, a, "media-main" if i == 0 else "") for i, (n, a) in enumerate(fotos))
-    return f"""<article class="room-card reveal">
+    def habitacion(fotos, pills, titulo, texto, servicios, cta):
+        media = "".join(ampliar(n, a, "media-main" if i == 0 else "") for i, (n, a) in enumerate(fotos))
+        return f"""<article class="room-card reveal">
   <div class="room-media">{media}</div>
   <div class="room-content">
     <div class="room-meta">{"".join(f'<span class="pill">{p}</span>' for p in pills)}</div>
@@ -56,51 +59,45 @@ def habitacion(fotos, pills, titulo, texto, servicios, cta):
     <ul class="amenity-list">{"".join(f"<li>{s}</li>" for s in servicios)}</ul>
     <div class="room-actions">
       <a class="button" data-direct-booking="true" href="#reservar">{cta}{ICON["flecha"]}</a>
-      <a class="text-link" href="{WA}" target="_blank" rel="noopener">Consultar por WhatsApp{ICON["flecha"]}</a>
+      <a class="text-link" href="{WA}" target="_blank" rel="noopener">{t["whatsapp_consulta"]}{ICON["flecha"]}</a>
     </div>
   </div>
 </article>"""
 
+    def cabeza(k, h2, copy):
+        return (f'<div class="section-head reveal"><div><p class="kicker">{t[k]}</p><h2 class="titulo">{t[h2]}</h2></div>'
+                f'<p class="copy">{t[copy]}</p></div>')
 
-def servicio(icono, titulo, texto, nota):
-    return (f'<article class="service-card reveal"><span class="feature-icon">{ICON[icono]}</span><h3>{titulo}</h3>'
-            f'<p>{texto}</p><small>{nota}</small></article>')
-
-
-def lugar(icono, titulo, sub, dist):
-    return (f'<div class="location-item"><span class="feature-icon">{ICON[icono]}</span><div><strong>{titulo}</strong>'
-            f'<span>{sub}</span></div><span class="location-distance">{dist}</span></div>')
-
-
-def html():
-    vistas = [("vista-arco", "Vista desde una ventana en arco", "tall"), ("vista-cupulas", "Tejados y cúpulas del centro histórico", ""),
-              ("vista-panoramica", "La ciudad desde la 4.ª planta", ""), ("vista-balcon", "Balcón sobre los tejados", ""),
-              ("vista-fachada", "Luz de Granada a media mañana", "")]
-    # 4 columnas x 2 filas: baño y espejo ocupan dos filas, la cocina dos columnas
-    detalles = [("bano", "Baños cuidados", "h2"), ("cocina", "Cocina compartida", "w2"), ("espejo", "Pasillos con carácter", "h2"),
-                ("cafe", "Rincón del café", ""), ("armario", "Madera natural", "")]
-    galeria = [("hab-toallas", "Habitación con ventana en arco"), ("room-private-1", "Doble con baño privado"),
-               ("vista-cupulas", "Vistas a los tejados"), ("hab-dos-ventanas", "Habitación con dos ventanas"),
-               ("room-flex-1", "Habitación con cama extra"), ("bano-2", "Baño"), ("balcony", "Balcón con mesa"),
-               ("hab-escritorio", "Escritorio junto al balcón"), ("parking", "Parking privado"), ("pasillo", "Pasillo de la 4.ª planta"), ("puerta-403", "Acceso con código"),
-               ("room-private-2", "Doble con escritorio"), ("hab-balcon", "Habitación con balcón")]
-    preguntas = [
-        ("¿Dispone de parking privado?", "Sí. Contamos con parking privado en pleno centro, con plazas limitadas y bajo reserva previa. Debido a las restricciones de tráfico del centro, es importante avisar antes de la llegada para recibir instrucciones."),
-        ("¿A qué hora se puede hacer el check-in?", "El check-in comienza a las 14:00. Si necesitas entrar tarde, podemos coordinar el acceso autónomo. El check-out es a las 12:00."),
-        ("¿Puedo dejar el equipaje antes o después de la estancia?", "Sí, podemos ayudarte a guardar las maletas para que aproveches mejor el día. Conviene coordinarlo con antelación."),
-        ("¿Las habitaciones tienen baño privado?", "Disponemos de habitaciones con baño privado y también de una opción con baño compartido. Revisa el nombre de la habitación antes de reservar."),
-        ("¿Hay cocina?", "Hay una pequeña cocina compartida con microondas, nevera, cafetera, fregadero y utensilios básicos, ideal para desayunos y comidas ligeras."),
-        ("¿Cómo llego desde el aeropuerto?", "La línea de autobús del aeropuerto conecta con el centro y realiza parada en Gran Vía. También podemos orientarte sobre taxi o traslado privado."),
-    ]
-    puntajes = [("WiFi", 9.7), ("Ubicación", 9.6), ("Personal", 9.5), ("Calidad-precio", 9.3), ("Limpieza", 9.2), ("Confort", 9.1)]
+    l = t["lang"]
+    nav = "".join(f'<a href="#{i}">{n}</a>' for i, n in zip(IDS, t["nav"]))
+    nav_pie = "".join(f'<a href="#{i}">{n}</a>' for i, n in zip(IDS, t["nav"]) if i != "opiniones")
+    trust = "".join(f'<div class="trust-item"><strong>{a}</strong><span>{b}</span></div>' for a, b in t["trust"])
+    features = "".join(f'<div class="feature-row"><span class="feature-icon">{ICON[i]}</span><div><strong>{a}</strong><p>{b}</p></div></div>'
+                       for i, a, b in t["features"])
+    habitaciones = "".join(habitacion(*h) for h in t["habitaciones"])
+    vistas = "".join(f'<figure class="view-card {c} reveal">{ampliar(n, a)}<figcaption>{a}</figcaption></figure>' for n, a, c in t["vistas"])
+    detalles = "".join(f'<figure class="detail {c} reveal">{ampliar(n, a)}<figcaption>{a}</figcaption></figure>' for n, a, c in t["detalles"])
+    servicios = "".join(f'<article class="service-card reveal"><span class="feature-icon">{ICON[i]}</span><h3>{a}</h3><p>{b}</p><small>{c}</small></article>'
+                        for i, a, b, c in t["servicios"])
+    lugares = "".join(f'<div class="location-item"><span class="feature-icon">{ICON[i]}</span><div><strong>{a}</strong><span>{b}</span></div>'
+                      f'<span class="location-distance">{c}</span></div>' for i, a, b, c in t["lugares"])
+    puntajes = "".join(f'<div class="rating-row"><span>{n}</span><div class="rating-track" aria-hidden="true"><div class="rating-fill" style="width:{v * 10:.0f}%"></div></div>'
+                       f'<span class="rating-value">{str(v).replace(".", t["decimal"])}</span></div>' for n, v in t["puntajes"])
+    tags = "".join(f'<span class="review-tag">{x}</span>' for x in t["tags"])
+    galeria = "".join(f'<div class="gallery-item reveal">{ampliar(n, a, "gallery-button")}</div>' for n, a in t["galeria"])
+    preguntas = "".join(f"<details><summary>{q}</summary><p>{r}</p></details>" for q, r in t["preguntas"])
+    robots = '<meta name="robots" content="noindex, nofollow">' if DEMO else ""
+    f, pk, oc, lb = t["form"], t["parking"], t["op_card"], t["lightbox"]
     return f"""<!DOCTYPE html>
-<html lang="es">
+<html lang="{l}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Itinere Rooms | Habitaciones en el centro de Granada con parking</title>
-<meta name="description" content="Habitaciones cómodas en el corazón de Granada, junto a Gran Vía, Calle Elvira y el Albaicín. Parking privado bajo reserva, WiFi y valoración 9,0 en Booking.com.">
-<meta name="theme-color" content="#1E2622">{"<meta name=\"robots\" content=\"noindex, nofollow\">" if DEMO else ""}
+<title>{t["title"]}</title>
+<meta name="description" content="{t["description"]}">
+<meta name="theme-color" content="#1E2622">{robots}
+<link rel="alternate" hreflang="es" href="https://itinererooms.com/"><link rel="alternate" hreflang="en" href="https://itinererooms.com/en.html"><link rel="alternate" hreflang="x-default" href="https://itinererooms.com/">
+<meta property="og:type" content="website"><meta property="og:title" content="{t["title"]}"><meta property="og:description" content="{t["description"]}"><meta property="og:locale" content="{t["og_locale"]}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,50;1,9..144,300..500,50&family=Manrope:wght@400;500;600;700&display=swap">
 <link rel="preload" as="image" href="assets/video/portada-compu.webp" media="(min-width: 721px)" fetchpriority="high">
@@ -108,15 +105,15 @@ def html():
 <link rel="stylesheet" href="assets/css/styles.css?v={VERSION}">
 </head>
 <body>
-<a class="skip-link" href="#contenido">Saltar al contenido</a>
+<a class="skip-link" href="#contenido">{t["saltar"]}</a>
 <header class="site-header">
   <div class="container nav-wrap">
-    <a class="brand" href="#inicio" aria-label="Itinere Rooms - Inicio">{MARCA}<span class="brand-copy"><strong>Itinere Rooms</strong><small>Granada · Centro</small></span></a>
-    <nav class="site-nav" id="main-nav" aria-label="Navegación principal"><a href="#habitaciones">Habitaciones</a><a href="#vistas">Vistas</a><a href="#servicios">Servicios</a><a href="#ubicacion">Ubicación</a><a href="#opiniones">Opiniones</a><a href="#galeria">Galería</a></nav>
+    <a class="brand" href="#inicio" aria-label="{t["inicio_aria"]}">{MARCA}<span class="brand-copy"><strong>Itinere Rooms</strong><small>Granada · Centro</small></span></a>
+    <nav class="site-nav" id="main-nav" aria-label="{t["nav_aria"]}">{nav}</nav>
     <div class="nav-actions">
-      <a class="lang-link" href="en.html" hreflang="en" aria-label="View in English">EN</a>
-      <a class="button" data-direct-booking="true" href="#reservar">Reservar</a>
-      <button class="menu-toggle" type="button" aria-controls="main-nav" aria-expanded="false" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+      <a class="lang-link" href="{t["otro"]}" hreflang="{t["otro_lang"]}" aria-label="{t["otro_aria"]}">{t["otro_label"]}</a>
+      <a class="button" data-direct-booking="true" href="#reservar">{t["reservar"]}</a>
+      <button class="menu-toggle" type="button" aria-controls="main-nav" aria-expanded="false" aria-label="{t["menu_aria"]}"><span></span><span></span><span></span></button>
     </div>
   </div>
 </header>
@@ -129,12 +126,12 @@ def html():
   <div class="container hero-content">
     <div class="hero-grid">
       <div>
-        <p class="hero-eyebrow">Calle Natalio Rivas 1 · Centro de Granada</p>
-        <h1>Granada<br>empieza <em>aquí.</em></h1>
-        <p class="hero-lead">Habitaciones cómodas y luminosas junto a Gran Vía, a un paso de Calle Elvira y el Albaicín. Llega, aparca y descubre la ciudad caminando.</p>
-        <div class="hero-actions"><a class="button button-light" href="#habitaciones">Ver habitaciones{ICON["flecha"]}</a><a class="button button-ghost" data-direct-booking="true" href="#reservar">Reservar directamente</a></div>
+        <p class="hero-eyebrow">{t["hero_eyebrow"]}</p>
+        <h1>{t["hero_h1"]}</h1>
+        <p class="hero-lead">{t["hero_lead"]}</p>
+        <div class="hero-actions"><a class="button button-light" href="#habitaciones">{t["ver_habitaciones"]}{ICON["flecha"]}</a><a class="button button-ghost" data-direct-booking="true" href="#reservar">{t["reservar_directo"]}</a></div>
       </div>
-      <aside class="hero-score" aria-label="Puntuación de huéspedes"><span class="score-number">9,0</span><p class="score-title">Fantástico</p><p class="score-sub">Más de 1.100 opiniones</p><span class="booking-chip">Booking.com</span></aside>
+      <aside class="hero-score" aria-label="{t["puntuacion_aria"]}"><span class="score-number">{t["nota"]}</span><p class="score-title">{t["fantastico"]}</p><p class="score-sub">{t["mas_opiniones"]}</p><span class="booking-chip">Booking.com</span></aside>
     </div>
   </div>
 </section>
@@ -143,19 +140,19 @@ def html():
   <div class="container">
     <div class="reservation-card">
       <div>
-        <p class="kicker">Directamente con nosotros</p>
-        <h2 id="direct-booking-title">Tu próxima escapada, a un paso.</h2>
-        <p class="copy">Elige tus fechas y consulta las habitaciones disponibles.</p>
-        <p class="stay-times">{ICON["reloj"]} Check-in desde las 14:00 · Check-out a las 12:00</p>
+        <p class="kicker">{t["res_kicker"]}</p>
+        <h2 id="direct-booking-title">{t["res_h2"]}</h2>
+        <p class="copy">{t["res_copy"]}</p>
+        <p class="stay-times">{ICON["reloj"]} {t["res_horas"]}</p>
       </div>
       <div class="reservation-engine">
-        <form class="availability-form" data-availability-form data-lang="es" novalidate>
+        <form class="availability-form" data-availability-form data-lang="{l}" novalidate>
           <div class="availability-dates">
-            <label class="availability-field"><span><strong>Check-in</strong><small>Entrada</small></span><input type="date" name="checkin" required aria-label="Check-in, entrada"></label>
-            <label class="availability-field"><span><strong>Check-out</strong><small>Salida</small></span><input type="date" name="checkout" required aria-label="Check-out, salida"></label>
+            <label class="availability-field"><span><strong>Check-in</strong><small>{t["entrada"]}</small></span><input type="date" name="checkin" required aria-label="{t["ci_aria"]}"></label>
+            <label class="availability-field"><span><strong>Check-out</strong><small>{t["salida"]}</small></span><input type="date" name="checkout" required aria-label="{t["co_aria"]}"></label>
           </div>
-          <button class="availability-submit" type="submit">Ver habitaciones disponibles</button>
-          <p class="availability-error" role="alert" hidden>Selecciona una fecha de salida posterior a la entrada.</p>
+          <button class="availability-submit" type="submit">{t["ver_disponibles"]}</button>
+          <p class="availability-error" role="alert" hidden>{t["error_fechas"]}</p>
         </form>
         <section class="availability-results" data-availability-results aria-live="polite" hidden></section>
       </div>
@@ -163,89 +160,57 @@ def html():
   </div>
 </section>
 
-<section class="trust" aria-label="Puntuaciones destacadas">
-  <div class="container trust-grid">
-    <div class="trust-item"><strong>9,0</strong><span>Booking.com</span></div>
-    <div class="trust-item"><strong>9,6</strong><span>Ubicación</span></div>
-    <div class="trust-item"><strong>9,2</strong><span>Limpieza</span></div>
-    <div class="trust-item"><strong>9,3</strong><span>Calidad-precio</span></div>
-    <div class="trust-item"><strong>250 m</strong><span>de Calle Elvira</span></div>
-  </div>
+<section class="trust" aria-label="{t["trust_aria"]}">
+  <div class="container trust-grid">{trust}</div>
 </section>
 
 <section class="section" aria-labelledby="intro-title">
   <div class="container intro-grid">
     <div class="intro-visual reveal">
-      <div class="intro-photo-main arco">{img("vista-arco", "Vista de Granada desde una ventana en arco")}</div>
-      <div class="intro-photo-small">{img("cocina", "Cocina compartida")}</div>
-      <div class="intro-badge"><div><strong>9,6</strong><span>Ubicación</span></div></div>
+      <div class="intro-photo-main arco">{img("vista-arco", t["intro_alt"])}</div>
+      <div class="intro-photo-small">{img("cocina", t["cocina_alt"])}</div>
+      <div class="intro-badge"><div><strong>{t["badge"][0]}</strong><span>{t["badge"][1]}</span></div></div>
     </div>
     <div class="reveal">
-      <p class="kicker">Todo cerca. Todo fácil.</p>
-      <h2 class="titulo" id="intro-title">Dormir en el centro cambia la forma de vivir <em>Granada.</em></h2>
-      <p class="copy">Itinere Rooms es un alojamiento de gestión familiar pensado para viajeros que valoran una habitación cómoda, una atención directa y, sobre todo, una ubicación excepcional. Aquí puedes dejar el coche, salir por la puerta y empezar a caminar.</p>
-      <div class="feature-list">
-        <div class="feature-row"><span class="feature-icon">{ICON["pin"]}</span><div><strong>En el corazón de Granada</strong><p>Junto a Gran Vía, cerca de la Catedral, Calle Elvira y la entrada al Albaicín.</p></div></div>
-        <div class="feature-row"><span class="feature-icon">{ICON["auto"]}</span><div><strong>Parking privado bajo reserva</strong><p>Una ventaja poco habitual en pleno centro. Te enviamos las indicaciones de acceso antes de llegar.</p></div></div>
-        <div class="feature-row"><span class="feature-icon">{ICON["chat"]}</span><div><strong>Atención directa y cercana</strong><p>Consultas rápidas por WhatsApp, recomendaciones locales y ayuda para organizar tu llegada.</p></div></div>
-      </div>
+      <p class="kicker">{t["intro_kicker"]}</p>
+      <h2 class="titulo" id="intro-title">{t["intro_h2"]}</h2>
+      <p class="copy">{t["intro_copy"]}</p>
+      <div class="feature-list">{features}</div>
     </div>
   </div>
 </section>
 
 <section class="section rooms-section" id="habitaciones">
   <div class="container">
-    <div class="section-head reveal"><div><p class="kicker">Habitaciones</p><h2 class="titulo">Elige tu forma de <em>descansar.</em></h2></div><p class="copy">Opciones para parejas, amigos y familias pequeñas, con baño privado o compartido y distintas configuraciones de cama.</p></div>
-    <div class="room-stack">
-      {habitacion([("room-flex-1", "Habitación triple o twin con baño privado"), ("room-flex-2", "Ambiente luminoso con tres camas"), ("balcony", "Balcón y vistas en algunas habitaciones")],
-                  ["Hasta 3 huéspedes", "Cama extra +15 €", "Baño privado"], "Doble o twin con baño privado y cama extra",
-                  "Las habitaciones 301 y 302 son dobles —con cama doble o dos individuales— y permiten añadir una cama supletoria para un tercer huésped por 15 €, sujeta a disponibilidad.",
-                  ["Baño privado", "Aire acondicionado", "TV de pantalla plana", "Minibar y café", "WiFi gratis", "Ropa de cama y toallas"], "Consultar disponibilidad")}
-      {habitacion([("room-private-1", "Habitación doble con baño privado"), ("room-private-2", "Habitación doble con escritorio"), ("balcony", "Balcón disponible en algunas unidades")],
-                  ["2 huéspedes", "Doble o 2 camas", "Baño privado"], "Doble o twin con baño privado",
-                  "Una habitación cómoda para escapadas en pareja, viajes con amigos o estancias de trabajo. Elige cama doble o dos individuales; algunas unidades disponen de balcón, sujeto a disponibilidad.",
-                  ["Baño privado", "Aire acondicionado", "TV de pantalla plana", "Minibar y cafetera", "WiFi gratis", "Algunas con balcón"], "Ver disponibilidad")}
-      {habitacion([("hab-arco", "Habitación doble o twin con baño compartido"), ("hab-toallas", "Ventana en arco con vistas"), ("bano", "Baño compartido")],
-                  ["Hasta 3 huéspedes", "Cama extra +15 €", "Baño compartido"], "Doble o twin con baño compartido",
-                  "Una alternativa sencilla y conveniente para quienes priorizan ubicación y presupuesto. Disponible con cama doble o dos camas individuales y acceso a un baño compartido cuidado. La habitación 404 es doble y permite añadir una cama supletoria para un tercer huésped por 15 €, sujeta a disponibilidad.",
-                  ["Baño compartido", "Aire acondicionado", "TV de pantalla plana", "WiFi gratis", "Doble o twin", "Minibar"], "Consultar esta opción")}
-    </div>
+    {cabeza("hab_kicker", "hab_h2", "hab_copy")}
+    <div class="room-stack">{habitaciones}</div>
   </div>
 </section>
 
 <section class="section views" id="vistas">
   <div class="container">
-    <div class="section-head reveal"><div><p class="kicker">Granada desde tu ventana</p><h2 class="titulo">Despierta entre <em>tejados y cúpulas.</em></h2></div><p class="copy">Ventanas en arco, balcones y la luz del centro histórico. Desde las plantas altas, Granada entra por la ventana.</p></div>
-    <div class="views-grid">
-      {"".join(f'<figure class="view-card {c} reveal">{ampliar(n, a)}<figcaption>{a}</figcaption></figure>' for n, a, c in vistas)}
-    </div>
-    <p class="views-note">Las vistas y los balcones dependen de cada habitación.</p>
+    {cabeza("vis_kicker", "vis_h2", "vis_copy")}
+    <div class="views-grid">{vistas}</div>
+    <p class="views-note">{t["vis_nota"]}</p>
   </div>
 </section>
 
 <section class="section details" id="detalles">
   <div class="container">
-    <div class="section-head reveal"><div><p class="kicker">Los detalles</p><h2 class="titulo">Pensado para que <em>no te falte nada.</em></h2></div><p class="copy">Baños cuidados, cafetera y minibar, cocina para desayunos y comidas ligeras, y acceso autónomo con código para llegar a tu ritmo.</p></div>
-    <div class="details-grid">
-      {"".join(f'<figure class="detail {c} reveal">{ampliar(n, a)}<figcaption>{a}</figcaption></figure>' for n, a, c in detalles)}
-    </div>
+    {cabeza("det_kicker", "det_h2", "det_copy")}
+    <div class="details-grid">{detalles}</div>
   </div>
 </section>
 
 <section class="section" id="servicios">
   <div class="container">
-    <div class="section-head reveal"><div><p class="kicker">Servicios</p><h2 class="titulo">Comodidad sin <em>complicaciones.</em></h2></div><p class="copy">Todo lo necesario para aprovechar la ciudad desde el primer minuto: llegar con facilidad, descansar bien y contar con ayuda real cuando la necesites.</p></div>
+    {cabeza("ser_kicker", "ser_h2", "ser_copy")}
     <div class="services-grid">
       <article class="service-card featured reveal">
-        <div class="service-copy"><span class="feature-icon">{ICON["auto"]}</span><h3>Parking privado en pleno centro</h3><p>Plazas limitadas y bajo reserva previa. Contacta antes de llegar para recibir indicaciones de acceso.</p><small>Una ventaja poco habitual en Granada.</small></div>
-        <div class="service-image">{img("parking", "Parking privado de Itinere Rooms")}</div>
+        <div class="service-copy"><span class="feature-icon">{ICON["auto"]}</span><h3>{pk[0]}</h3><p>{pk[1]}</p><small>{pk[2]}</small></div>
+        <div class="service-image">{img("parking", pk[3])}</div>
       </article>
-      {servicio("llave", "Check-in autónomo", "Si llegas tarde, podemos organizar un acceso autónomo para que tu llegada sea sencilla.", "Disponible previa coordinación.")}
-      {servicio("wifi", "WiFi gratuito", "Conexión disponible en todo el alojamiento, con una valoración de 9,7 entre los huéspedes.", "Ideal para ocio o trabajo.")}
-      {servicio("cama", "Confort en la habitación", "Aire acondicionado, calefacción, TV de pantalla plana y minibar para descansar a tu ritmo.", "Comodidad todo el año.")}
-      {servicio("taza", "Cocina compartida", "Microondas, nevera, cafetera, fregadero y utensilios básicos para desayunos o comidas ligeras.", "Práctica y accesible.")}
-      {servicio("maleta", "Equipaje y recomendaciones", "Posibilidad de dejar maletas y atención directa para orientarte sobre Granada, flamenco y visitas.", "Hablas con personas, no con un call center.")}
-      {servicio("ascensor", "Ascensor y lavandería", "Acceso cómodo mediante ascensor y servicio de lavandería disponible para estancias más largas.", "Pensado también para varios días.")}
+      {servicios}
     </div>
   </div>
 </section>
@@ -253,32 +218,26 @@ def html():
 <section class="section" id="ubicacion" style="padding-top:0">
   <div class="container location-grid">
     <div class="reveal">
-      <p class="kicker">La mejor base para explorar</p>
-      <h2 class="titulo">Aparca una vez. Granada se recorre <em>a pie.</em></h2>
-      <p class="copy">La ubicación es una de las grandes razones por las que los huéspedes eligen Itinere Rooms. Estás junto a Gran Vía, rodeado de restaurantes, tiendas, tapas y conexiones de transporte.</p>
-      <div class="location-list">
-        {lugar("pin", "Gran Vía de Colón", "Eje principal del centro", "a unos pasos")}
-        {lugar("pin", "Calle Elvira", "Teterías, tapas y comercios tradicionales", "250 m")}
-        {lugar("pin", "Catedral y centro histórico", "Monumentos y plazas principales", "a pocos minutos")}
-        {lugar("pin", "Albaicín", "Barrio Patrimonio Mundial de la UNESCO", "muy cerca")}
-        {lugar("bus", "Bus urbano y aeropuerto", "Conexiones desde Gran Vía", "junto al alojamiento")}
-      </div>
+      <p class="kicker">{t["ubi_kicker"]}</p>
+      <h2 class="titulo">{t["ubi_h2"]}</h2>
+      <p class="copy">{t["ubi_copy"]}</p>
+      <div class="location-list">{lugares}</div>
     </div>
     <div class="map-card reveal">
-      <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Itinere%20Rooms%2C%20Natalio%20Rivas%201%2C%20Granada&amp;output=embed" title="Mapa de Itinere Rooms"></iframe>
-      <div class="map-footer"><div><strong>Itinere Rooms</strong><span>Calle Natalio Rivas 1, 3º derecha · Granada</span></div><a class="text-link" href="{MAPS}" target="_blank" rel="noopener">Abrir en Google Maps{ICON["flecha"]}</a></div>
+      <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Itinere%20Rooms%2C%20Natalio%20Rivas%201%2C%20Granada&amp;hl={l}&amp;output=embed" title="{t["mapa_title"]}"></iframe>
+      <div class="map-footer"><div><strong>Itinere Rooms</strong><span>{t["direccion"]}</span></div><a class="text-link" href="{MAPS}" target="_blank" rel="noopener">{t["abrir_maps"]}{ICON["flecha"]}</a></div>
     </div>
   </div>
 </section>
 
 <section class="section details" id="opiniones">
   <div class="container">
-    <div class="section-head reveal"><div><p class="kicker">Opiniones verificadas</p><h2 class="titulo">Una puntuación que se gana <em>estancia a estancia.</em></h2></div><p class="copy">Los huéspedes destacan especialmente la ubicación, la atención, la limpieza, la comodidad y la relación calidad-precio.</p></div>
+    {cabeza("op_kicker", "op_h2", "op_copy")}
     <div class="reviews-grid">
-      <div class="review-score-card reveal"><span class="score-number">9,0</span><h3>Fantástico en Booking.com</h3><p>Más de 1.100 opiniones de huéspedes</p><a class="button button-light" href="{BOOKING}" target="_blank" rel="noopener">Leer opiniones{ICON["flecha"]}</a></div>
+      <div class="review-score-card reveal"><span class="score-number">{t["nota"]}</span><h3>{oc[0]}</h3><p>{oc[1]}</p><a class="button button-light" href="{t["booking_url"]}" target="_blank" rel="noopener">{oc[2]}{ICON["flecha"]}</a></div>
       <div class="reveal">
-        <div class="rating-list">{"".join(f'<div class="rating-row"><span>{n}</span><div class="rating-track" aria-hidden="true"><div class="rating-fill" style="width:{v * 10:.0f}%"></div></div><span class="rating-value">{str(v).replace(".", ",")}</span></div>' for n, v in puntajes)}</div>
-        <div class="review-tags">{"".join(f'<span class="review-tag">{t}</span>' for t in ["Ubicación perfecta", "Habitaciones limpias", "Camas cómodas", "Atención cercana", "Excelente relación calidad-precio"])}</div>
+        <div class="rating-list">{puntajes}</div>
+        <div class="review-tags">{tags}</div>
       </div>
     </div>
   </div>
@@ -286,39 +245,39 @@ def html():
 
 <section class="section" id="galeria">
   <div class="container">
-    <div class="section-head reveal"><div><p class="kicker">Galería</p><h2 class="titulo">Descubre tu próxima <em>estancia.</em></h2></div><p class="copy">Habitaciones luminosas, baños cuidados, balcones con vistas y servicios que hacen más fácil visitar Granada.</p></div>
-    <div class="gallery-grid">{"".join(f'<div class="gallery-item reveal">{ampliar(n, a, "gallery-button")}</div>' for n, a in galeria)}</div>
+    {cabeza("gal_kicker", "gal_h2", "gal_copy")}
+    <div class="gallery-grid">{galeria}</div>
   </div>
 </section>
 
 <section class="section details" id="preguntas">
   <div class="container faq-grid">
-    <div class="reveal"><p class="kicker">Preguntas frecuentes</p><h2 class="titulo">Antes de <em>llegar.</em></h2><p class="copy">Respuestas rápidas a las preguntas más habituales. Para cualquier situación especial, escríbenos directamente.</p></div>
-    <div class="faq-list reveal">{"".join(f"<details><summary>{q}</summary><p>{r}</p></details>" for q, r in preguntas)}</div>
+    <div class="reveal"><p class="kicker">{t["faq_kicker"]}</p><h2 class="titulo">{t["faq_h2"]}</h2><p class="copy">{t["faq_copy"]}</p></div>
+    <div class="faq-list reveal">{preguntas}</div>
   </div>
 </section>
 
 <section class="section contact" id="contacto">
   <div class="container contact-grid">
     <div class="reveal">
-      <p class="kicker">Reserva y contacto</p>
-      <h2 class="titulo">Tu viaje puede empezar <em>con un mensaje.</em></h2>
-      <p class="copy">Consulta disponibilidad, parking o cualquier detalle de la estancia. Te atendemos directamente y te ayudamos a organizar la llegada.</p>
+      <p class="kicker">{t["con_kicker"]}</p>
+      <h2 class="titulo">{t["con_h2"]}</h2>
+      <p class="copy">{t["con_copy"]}</p>
       <div class="contact-details">
-        <div class="contact-line"><span class="feature-icon">{ICON["tel"]}</span><div><small>Teléfono y WhatsApp</small><br><a href="tel:+34683222264">+34 683 22 22 64</a></div></div>
-        <div class="contact-line"><span class="feature-icon">{ICON["pin"]}</span><div><small>Dirección</small><br><a href="{MAPS}" target="_blank" rel="noopener">Calle Natalio Rivas 1, 3º derecha · Granada</a></div></div>
+        <div class="contact-line"><span class="feature-icon">{ICON["tel"]}</span><div><small>{t["tel_label"]}</small><br><a href="tel:+34683222264">+34 683 22 22 64</a></div></div>
+        <div class="contact-line"><span class="feature-icon">{ICON["pin"]}</span><div><small>{t["dir_label"]}</small><br><a href="{MAPS}" target="_blank" rel="noopener">{t["direccion"]}</a></div></div>
       </div>
     </div>
     <div class="contact-card reveal">
-      <h3>Consultar disponibilidad</h3>
-      <p>Completa los datos y se abrirá WhatsApp con el mensaje preparado.</p>
+      <h3>{t["form_h3"]}</h3>
+      <p>{t["form_p"]}</p>
       <form class="contact-form">
-        <div><label for="name-es">Nombre</label><input id="name-es" name="name" type="text" autocomplete="name" required></div>
-        <div><label for="dates-es">Fechas aproximadas</label><input id="dates-es" name="dates" type="text" placeholder="Ej. 12–15 octubre"></div>
-        <div><label for="guests-contact-es">Huéspedes</label><input id="guests-contact-es" name="guests" type="number" min="1" max="3" value="2"></div>
-        <div class="full"><label for="message-es">Mensaje</label><textarea id="message-es" name="message" placeholder="Parking, tipo de cama, hora de llegada…"></textarea></div>
-        <button class="button full" type="submit">{ICON["wa"]}Enviar por WhatsApp</button>
-        <p class="contact-privacy">Este formulario no almacena datos: prepara un mensaje y abre WhatsApp.</p>
+        <div><label for="name-{l}">{f[0]}</label><input id="name-{l}" name="name" type="text" autocomplete="name" required></div>
+        <div><label for="dates-{l}">{f[1]}</label><input id="dates-{l}" name="dates" type="text" placeholder="{f[2]}"></div>
+        <div><label for="guests-contact-{l}">{f[3]}</label><input id="guests-contact-{l}" name="guests" type="number" min="1" max="3" value="2"></div>
+        <div class="full"><label for="message-{l}">{f[4]}</label><textarea id="message-{l}" name="message" placeholder="{f[5]}"></textarea></div>
+        <button class="button full" type="submit">{ICON["wa"]}{f[6]}</button>
+        <p class="contact-privacy">{f[7]}</p>
       </form>
     </div>
   </div>
@@ -328,15 +287,15 @@ def html():
 <footer class="site-footer">
   <div class="container">
     <div class="footer-grid">
-      <div class="footer-brand"><a class="brand" href="#inicio">{MARCA}<span class="brand-copy"><strong>Itinere Rooms</strong><small>Granada · Centro</small></span></a><p>Habitaciones cómodas, parking privado y una ubicación excepcional para descubrir Granada caminando.</p></div>
-      <div><p class="footer-title">Explorar</p><div class="footer-links"><a href="#habitaciones">Habitaciones</a><a href="#vistas">Vistas</a><a href="#servicios">Servicios</a><a href="#ubicacion">Ubicación</a><a href="#galeria">Galería</a></div></div>
-      <div><p class="footer-title">Reserva</p><div class="footer-links"><a data-direct-booking="true" href="#reservar">Reservar directo</a><a href="{BOOKING}" target="_blank" rel="noopener">Booking.com</a><a href="{WA}" target="_blank" rel="noopener">WhatsApp</a><a href="tel:+34683222264">+34 683 22 22 64</a><a href="{MAPS}" target="_blank" rel="noopener">Google Maps</a></div></div>
+      <div class="footer-brand"><a class="brand" href="#inicio">{MARCA}<span class="brand-copy"><strong>Itinere Rooms</strong><small>Granada · Centro</small></span></a><p>{t["pie_desc"]}</p></div>
+      <div><p class="footer-title">{t["pie_explorar"]}</p><div class="footer-links">{nav_pie}</div></div>
+      <div><p class="footer-title">{t["pie_reserva"]}</p><div class="footer-links"><a data-direct-booking="true" href="#reservar">{t["pie_reservar"]}</a><a href="{t["booking_url"]}" target="_blank" rel="noopener">Booking.com</a><a href="{WA}" target="_blank" rel="noopener">WhatsApp</a><a href="tel:+34683222264">+34 683 22 22 64</a><a href="{MAPS}" target="_blank" rel="noopener">Google Maps</a></div></div>
     </div>
-    <div class="footer-bottom"><span>© <span data-year>2026</span> Itinere Rooms. Todos los derechos reservados.</span><span>Calle Natalio Rivas 1, 3º derecha · Granada</span></div>
+    <div class="footer-bottom"><span>© <span data-year>2026</span> Itinere Rooms. {t["derechos"]}</span><span>{t["direccion"]}</span></div>
   </div>
 </footer>
-<div class="mobile-booking-bar"><a class="button button-outline" href="{WA}" target="_blank" rel="noopener">{ICON["wa"]}WhatsApp</a><a class="button" data-direct-booking="true" href="#reservar">Reservar directo</a></div>
-<dialog class="lightbox" aria-label="Galería de imágenes"><div class="lightbox-wrap"><button class="lightbox-control lightbox-close" type="button" aria-label="Cerrar">×</button><button class="lightbox-control lightbox-prev" type="button" aria-label="Anterior">‹</button><div class="lightbox-image-wrap"><img src="" alt=""></div><button class="lightbox-control lightbox-next" type="button" aria-label="Siguiente">›</button><div class="lightbox-caption"></div></div></dialog>
+<div class="mobile-booking-bar"><a class="button button-outline" href="{WA}" target="_blank" rel="noopener">{ICON["wa"]}{t["barra"][0]}</a><a class="button" data-direct-booking="true" href="#reservar">{t["barra"][1]}</a></div>
+<dialog class="lightbox" aria-label="{lb[0]}"><div class="lightbox-wrap"><button class="lightbox-control lightbox-close" type="button" aria-label="{lb[1]}">×</button><button class="lightbox-control lightbox-prev" type="button" aria-label="{lb[2]}">‹</button><div class="lightbox-image-wrap"><img src="" alt=""></div><button class="lightbox-control lightbox-next" type="button" aria-label="{lb[3]}">›</button><div class="lightbox-caption"></div></div></dialog>
 <script defer src="assets/js/main.js"></script>
 <script defer src="assets/js/portada.js"></script>
 </body>
@@ -345,5 +304,6 @@ def html():
 
 
 if __name__ == "__main__":
-    (AQUI / "index.html").write_text(html(), encoding="utf-8")
-    print("index.html listo")
+    for textos in (ES, EN):
+        (AQUI / textos["archivo"]).write_text(html(textos), encoding="utf-8")
+    print("index.html y en.html listos")

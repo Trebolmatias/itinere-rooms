@@ -9,5 +9,5 @@ Rediseño de https://www.itinere-rooms.com/ (habitaciones en el centro de Granad
 - `assets/video/`: videos de portada; `assets/img/`: fotos en WebP (800 y 1600 px).
 - `capturar.py`: capturas de revisión (compu y celular), con la web servida en http://localhost:8790.
 
-Pendiente: versión en inglés (`en.html`), y publicar en el proyecto de Vercel junto a la función `/api/availability`
+Español (`index.html`) e inglés (`en.html`) salen de `textos.py`. Pendiente: publicar en el proyecto de Vercel junto a la función `/api/availability`
 (sin ella, el buscador muestra el mensaje de error).
