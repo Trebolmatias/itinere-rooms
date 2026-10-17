@@ -5,6 +5,9 @@ Las fotos están en assets/img/<nombre>-800.webp y -1600.webp (ver ../exportar_f
 from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
+# DEMO: la copia de prueba (GitHub Pages) no se indexa en Google, para no competir con itinere-rooms.com.
+# Poner False al publicar en el dominio real.
+DEMO = True
 VERSION = int((AQUI / "assets" / "css" / "styles.css").stat().st_mtime)  # evita que el navegador use el CSS viejo
 WA = "https://wa.me/34683222264"
 MAPS = "https://www.google.com/maps/search/?api=1&amp;query=Itinere+Rooms+Natalio+Rivas+1+Granada"
@@ -97,7 +100,7 @@ def html():
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Itinere Rooms | Habitaciones en el centro de Granada con parking</title>
 <meta name="description" content="Habitaciones cómodas en el corazón de Granada, junto a Gran Vía, Calle Elvira y el Albaicín. Parking privado bajo reserva, WiFi y valoración 9,0 en Booking.com.">
-<meta name="theme-color" content="#1E2622">
+<meta name="theme-color" content="#1E2622">{"<meta name=\"robots\" content=\"noindex, nofollow\">" if DEMO else ""}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,50;1,9..144,300..500,50&family=Manrope:wght@400;500;600;700&display=swap">
 <link rel="preload" as="image" href="assets/video/portada-compu.webp" media="(min-width: 721px)" fetchpriority="high">
